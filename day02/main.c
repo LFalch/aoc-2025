@@ -58,11 +58,17 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "aaaaaaaaa!");
             return -1;
         }
-        // invalidSum += sumInvalids(from, to);
+        #ifdef DAYONE
+        invalidSum += sumInvalids(from, to);
+        #else
         sumInvalidsExt(from, to, &invalidSumExt, &invalidSum);
+        #endif
     } while (fgetc(f) == ',');
     printf("part 1: %lu\n", invalidSum);
+    #ifdef DAYONE
+    #else
     printf("part 2: %lu\n", invalidSumExt);
+    #endif
 }
 
 static uint64_t numPlaces(uint64_t n) {
