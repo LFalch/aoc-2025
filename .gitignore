@@ -1,0 +1,6 @@
+.session
+input.txt
+test.txt
+*.out
+*.o
+target/
