@@ -5,19 +5,15 @@
 
 int turnDial(int dial, int turn, char direction, int *clicks) {
     if (direction == 'R') {
-        for (int i = 0; i < turn; i++) {
-            dial = (dial + 1) % 100;
-            if (dial == 0) *clicks += 1;
-        }
+        *clicks += (dial + turn) / 100;
+        return (dial + turn) % 100;
     } else if (direction == 'L') {
-        for (int i = 0; i < turn; i++) {
-            dial = (dial + 99) % 100;
-            if (dial == 0) *clicks += 1;
-        }
-    } else
-        printf(stderr, "bad directoin!");
+        *clicks += (dial - turn) / -100 + (turn >= dial) - (dial == 0);
+        return (dial + 100 - (turn % 100)) % 100;
+    }
 
-    return dial;
+    fprintf(stderr, "bad direction!");
+    return -1;
 }
 
 int main(int argc, char* argv[]) {
@@ -29,16 +25,9 @@ int main(int argc, char* argv[]) {
     char l;
     int turn, countZ = 0, countClick = 0;
     while (fscanf(f, "%c%d\n", &l, &turn) != EOF) {
-        printf("%c%d   ", l, turn);
-        int clicks = 0;
-        dial = turnDial(dial, turn, l, &clicks);
-        if (clicks > 0) {
-            countClick += clicks;
-            printf("%d! ", clicks);
-        }
+        dial = turnDial(dial, turn, l, &countClick);
         dial = (dial + (turn / 100 + 1) * 100) % 100;
         if (dial == 0) countZ++;
-        printf("-> %d\n", dial);
     }
 
     printf("count zero: %d\n", countZ);
