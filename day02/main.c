@@ -65,7 +65,6 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "aaaaaaaaa!");
             return -1;
         }
-        printf("%lu-%lu\n", from, to);
         // invalidSum += sumInvalids(from, to);
         invalidSumExt += sumInvalidsExt(from, to, &invalidSum);
     } while (fgetc(f) == ',');

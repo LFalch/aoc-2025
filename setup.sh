@@ -22,3 +22,5 @@ else
     echo "main.c already exists. to avoid deleting source code, setup will abort"
     exit 1
 fi
+# in case, this file was sourced
+cd $dayf
