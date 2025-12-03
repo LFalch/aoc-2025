@@ -16,13 +16,9 @@ pub fn main() !void {
     var part1: u64 = 0;
     var part2: u64 = 0;
 
-    var map = std.AutoHashMap(CacheKey, u64).init(std.heap.smp_allocator);
-    defer map.deinit();
     while (try reader.interface.takeDelimiter('\n')) |line| {
-        part1 += findBestJoltagePair(line);
-
-        defer map.clearRetainingCapacity();
-        part2 += try findBestJoltageNaryTuple(line, 12, &map);
+        part1 += try findBestJoltageNaryTuple(line, 2);
+        part2 += try findBestJoltageNaryTuple(line, 12);
     }
 
     var stdout = std.fs.File.stdout().writer(&buf);
@@ -31,39 +27,29 @@ pub fn main() !void {
     try stdout.interface.print("part 1: {}\npart 2: {}\n", .{ part1, part2 });
 }
 
-const CacheKey = struct {
-    bank_ptr: usize,
-    bank_len: usize,
-    n: u8,
-};
+// greedy solution, likely much faster than the top-down dynamic one
+fn findBestJoltageNaryTuple(bank: []u8, n: u8) !u64 {
+    var cur_bank = bank;
+    var cur_n = n;
 
-fn findBestJoltagePair(bank: []u8) u8 {
-    var max: u8 = 0;
-    for (0..bank.len) |i|
-        for (i + 1..bank.len) |j| {
-            const joltage = (bank[i] - '0') * 10 + bank[j] - '0';
-            if (joltage > max) max = joltage;
-        };
+    var joltage: u64 = 0;
 
-    return max;
-}
-fn findBestJoltageNaryTuple(bank: []u8, n: u8, cache: *std.AutoHashMap(CacheKey, u64)) !u64 {
-    if (n == 0) return 0;
-    const key = CacheKey{ .bank_ptr = @intFromPtr(bank.ptr), .bank_len = bank.len, .n = n };
-    if (cache.get(key)) |max|
-        return max;
+    while (cur_n > 0) {
+        // shortcut
+        if (cur_n == cur_bank.len)
+            return joltage + try std.fmt.parseInt(u64, cur_bank, 10);
 
-    var max: u64 = 0;
-    for (0..bank.len) |i| {
-        if (bank.len - i < n) break;
-        const digit = (bank[i] - '0') * pow10(n - 1);
-        const sum = digit + try findBestJoltageNaryTuple(bank[i + 1 ..], n - 1, cache);
-        if (sum > max) {
-            max = sum;
-        }
+        cur_n -= 1;
+
+        // don't look for it at the _n - 1_ last digits because then we'd end up with a subbank that's too small
+        const earliest_biggest_digit = std.mem.max(u8, cur_bank[0 .. cur_bank.len - cur_n]);
+        const biggest_pos = std.mem.indexOfScalar(u8, cur_bank, earliest_biggest_digit).?;
+
+        joltage += (earliest_biggest_digit - '0') * pow10(cur_n);
+        cur_bank = cur_bank[biggest_pos + 1 ..];
     }
-    try cache.put(key, max);
-    return max;
+
+    return joltage;
 }
 
 fn pow10(n: u8) u64 {
