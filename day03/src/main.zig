@@ -16,11 +16,12 @@ pub fn main() !void {
     var part1: u64 = 0;
     var part2: u64 = 0;
 
+    var map = std.AutoHashMap(CacheKey, u64).init(std.heap.smp_allocator);
+    defer map.deinit();
     while (try reader.interface.takeDelimiter('\n')) |line| {
         part1 += findBestJoltagePair(line);
 
-        var map = std.AutoHashMap(CacheKey, u64).init(std.heap.smp_allocator);
-        defer map.deinit();
+        defer map.clearRetainingCapacity();
         part2 += try findBestJoltageNaryTuple(line, 12, &map);
     }
 
