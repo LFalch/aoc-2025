@@ -1,0 +1,7 @@
+.{
+    .name = .day02,
+    .version = "0.0.1",
+    .minimum_zig_version = "0.15.2",
+    .paths = .{""},
+    .fingerprint = 0x65bb825a4bd1892f,
+}
