@@ -18,8 +18,8 @@ fn solve(fd: aoc.FileData, _: void) u32 {
 
             var rolls: u8 = 0;
 
-            for (subSaturating(y, 1)..@min(y + 2, h)) |y1| {
-                for (subSaturating(x, 1)..x + 2) |x1| {
+            for (y -| 1..@min(y + 2, h)) |y1| {
+                for (x -| 1..x + 2) |x1| {
                     rolls += @intFromBool(fd.file_data[x1 + y1 * w] == '@');
                 }
             }
@@ -31,9 +31,4 @@ fn solve(fd: aoc.FileData, _: void) u32 {
     }
 
     return sum;
-}
-
-fn subSaturating(a: anytype, b: anytype) @TypeOf(a, b) {
-    const res, const overflow = @subWithOverflow(a, b);
-    if (overflow == 1) return 0 else return res;
 }
