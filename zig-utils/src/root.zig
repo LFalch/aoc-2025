@@ -130,9 +130,9 @@ pub fn benchmark(Answer: type, fd: FileData, answer: []u8, ctx: anytype, f: fn (
     while (!timer.is_full() and (timer.next_time < 10 or (std.time.milliTimestamp() - benchmark_start < MAX_BENCHMARK_TIME_MS))) {
         timer.start();
         const calculated = f(fd, ctx);
+        timer.stop();
         var buf: [1024]u8 = undefined;
         const printed = try std.fmt.bufPrint(&buf, "{any}", .{calculated});
-        timer.stop();
         if (!std.mem.eql(u8, printed, answer)) {
             std.debug.panic("incorrect result during benchmark, got {d}\n", .{calculated});
         }
@@ -168,23 +168,24 @@ pub const AvgTimer = struct {
         const outlier_count = (3 * self.next_time) / 10;
         const times = self.times[outlier_count .. self.next_time - outlier_count];
 
-        var sum: i128 = 0;
+        var sum: u128 = 0;
         for (times) |time| {
             sum += time;
         }
-        const avg = @divTrunc(sum, @as(i64, @intCast(times.len)));
+        const avg = @divTrunc(sum, times.len);
         sum = 0;
         for (times) |time| {
-            const x = time - avg;
-            sum += x * x;
+            const x = @as(i64, time) - @as(i64, @intCast(avg));
+            sum += @intCast(x * x);
         }
-        const variance = @divTrunc(sum, @as(i64, @intCast(times.len)));
+        const variance = @divTrunc(sum, times.len);
+        const std_dev = std.math.sqrt(variance);
 
         const ms = @divTrunc(avg, 1000);
         const us = @mod(avg, 1000);
         var decimals: [3]u8 = undefined;
         zeroFill(&decimals, us);
-        std.debug.print("Average time: {d}.{s}ms ± {d}µs\n", .{ ms, decimals, variance });
+        std.debug.print("Average time: {d}.{s}ms ± {d}µs\n", .{ ms, decimals, std_dev });
     }
 
     pub fn is_full(self: *const AvgTimer) bool {
