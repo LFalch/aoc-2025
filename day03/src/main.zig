@@ -28,7 +28,7 @@ pub fn main() !void {
 }
 
 // greedy solution, likely much faster than the top-down dynamic one
-fn findBestJoltageNaryTuple(bank: []u8, n: u8) !u64 {
+pub fn findBestJoltageNaryTuple(bank: []const u8, n: u8) !u64 {
     var cur_bank = bank;
     var cur_n = n;
 

@@ -1,7 +1,7 @@
 .{
-    .name = .day03,
+    .name = .zig_utils,
     .version = "0.0.1",
     .minimum_zig_version = "0.15.2",
     .paths = .{""},
-    .fingerprint = 0x12bcb2cc90def9f7,
+    .fingerprint = 0x6dc482ca583432de,
 }
