@@ -32,3 +32,11 @@ zig build run1 --release=fast -- 1435
 echo "Part 2"
 zig build run2 --release=fast -- 8623
 cd ..
+
+echo "Day 5"
+cd day05
+echo "Part 1"
+zig build run1 --release=fast -- 707
+echo "Part 2"
+zig build run2 --release=fast -- 361615643045059
+cd ..
