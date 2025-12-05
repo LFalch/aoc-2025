@@ -1,19 +1,17 @@
 const std = @import("std");
 const aoc = @import("aoc");
 
+const AnswerType: type = u32;
+
 pub fn main() !void {
-    var gpa = std.heap.DebugAllocator(.{}).init;
-    defer _ = gpa.deinit();
-    try aoc.main_with_bench(u32, .{gpa.allocator()}, solve);
+    try aoc.run_solution(AnswerType, solve);
 }
 
-fn solve(fd: aoc.FileData, ctx: struct { std.mem.Allocator }) u32 {
-    const alloc = ctx[0];
-    var f = fd;
-
-    _ = alloc;
-    _ = &f;
+fn solve(ctx: aoc.Context) AnswerType {
+    var f = ctx.file_data;
+    var sum: AnswerType = 0;
+    sum += f.read_number(AnswerType);
     // READ DATA
     // CALCULATE RESULT
-    return 0;
+    return sum;
 }

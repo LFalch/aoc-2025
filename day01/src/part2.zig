@@ -2,11 +2,11 @@ const std = @import("std");
 const aoc = @import("aoc");
 
 pub fn main() !void {
-    try aoc.main_with_bench(u32, {}, solve);
+    try aoc.run_solution(u32, solve);
 }
 
-fn solve(fd: aoc.FileData, _: void) u32 {
-    var f = fd;
+fn solve(ctx: aoc.Context) u32 {
+    var f = ctx.file_data;
 
     var dial: i32 = 50;
     var countClicks: u32 = 0;

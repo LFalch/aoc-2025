@@ -2,26 +2,22 @@ const std = @import("std");
 const aoc = @import("aoc");
 
 pub fn main() !void {
-    try aoc.main_with_bench(u64, {}, solve);
+    try aoc.run_solution(u64, solve);
 }
 
-var buf: [4096]u8 = undefined;
+fn solve(ctx: aoc.Context) u64 {
+    var f = ctx.file_data;
 
-fn solve(fd: aoc.FileData, _: void) u64 {
-    var fba = std.heap.FixedBufferAllocator.init(&buf);
-    const alloc = fba.allocator();
-    var f = fd;
-
-    var froms = std.ArrayList(u64).initCapacity(alloc, 256) catch unreachable;
-    var tos = std.ArrayList(u64).initCapacity(alloc, 256) catch unreachable;
+    var froms = std.ArrayList(u64).initCapacity(ctx.arena, 256) catch unreachable;
+    var tos = std.ArrayList(u64).initCapacity(ctx.arena, 256) catch unreachable;
     while (true) {
         const from = f.read_number(u64);
         if (from == 0) break;
-        froms.append(alloc, from) catch unreachable;
+        froms.append(ctx.arena, from) catch unreachable;
 
         std.debug.assert(f.accept("-"));
         const to = f.read_number(u64);
-        tos.append(alloc, to) catch unreachable;
+        tos.append(ctx.arena, to) catch unreachable;
         _ = f.accept("\n");
     }
 

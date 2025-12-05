@@ -1,14 +1,13 @@
 const std = @import("std");
 const aoc = @import("aoc");
 
+const AnswerType: type = u32;
+
 pub fn main() !void {
-    var gpa = std.heap.DebugAllocator(.{}).init;
-    defer _ = gpa.deinit();
-    try aoc.main_with_bench(u32, .{gpa.allocator()}, solve);
+    try aoc.run_solution(AnswerType, solve);
 }
 
-fn solve(fd: aoc.FileData, ctx: struct { std.mem.Allocator }) u32 {
-    _ = fd;
+fn solve(ctx: aoc.Context) AnswerType {
     _ = ctx;
-    return 0;
+    return undefined;
 }

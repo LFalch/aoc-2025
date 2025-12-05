@@ -1,15 +1,11 @@
 const std = @import("std");
 const testing = std.testing;
 
-var file_buf: [32 * 1024]u8 = undefined;
-
-fn read(path: []const u8) !FileData {
+fn read(path: []const u8, alloc: std.mem.Allocator) ![]u8 {
     const f = try std.fs.cwd().openFile(path, .{ .mode = .read_only });
     defer f.close();
-    const n = try f.readAll(&file_buf);
-    return .{
-        .file_data = file_buf[0..n],
-    };
+    const buf = try f.readToEndAlloc(alloc, 32 * 1024);
+    return buf;
 }
 
 pub const FileData = struct {
@@ -92,8 +88,18 @@ pub const Timer = struct {
     }
 };
 
+pub const Context = struct {
+    file_data: FileData,
+    arena: std.mem.Allocator,
+    gpa: std.mem.Allocator,
+};
+
+var mem_buf: [256 * 1024]u8 = undefined;
+
 /// Main function that does a benchmark if the answer is given in cmdargs
-pub fn main_with_bench(Answer: type, ctx: anytype, f: fn (FileData, @TypeOf(ctx)) Answer) !void {
+pub fn run_solution(Answer: type, f: fn (Context) Answer) !void {
+    var fba = std.heap.FixedBufferAllocator.init(&mem_buf);
+
     var input_file: ?[]u8 = null;
     var answer_arg: ?[]u8 = null;
     if (std.os.argv.len > 1) {
@@ -106,13 +112,20 @@ pub fn main_with_bench(Answer: type, ctx: anytype, f: fn (FileData, @TypeOf(ctx)
             }
         }
     }
+    const file_bytes = try read(if (input_file) |p| p else "input.txt", fba.allocator());
 
-    const fd = try read(if (input_file) |p| p else "input.txt");
     if (answer_arg) |answer| {
-        try benchmark(Answer, fd, answer, ctx, f);
+        try bench(Answer, answer, &fba, file_bytes, f);
     } else {
+        var da = std.heap.DebugAllocator(.{}).init;
+        defer _ = da.deinit();
+        const ctx = Context{
+            .file_data = .{ .file_data = file_bytes },
+            .arena = fba.allocator(),
+            .gpa = da.allocator(),
+        };
         const timer = Timer.start();
-        const answer = f(fd, ctx);
+        const answer = f(ctx);
         timer.stop();
         var stdout_buf: [1024]u8 = undefined;
         var stdout = std.fs.File.stdout().writer(&stdout_buf);
@@ -121,18 +134,27 @@ pub fn main_with_bench(Answer: type, ctx: anytype, f: fn (FileData, @TypeOf(ctx)
     }
 }
 
-pub fn benchmark(Answer: type, fd: FileData, answer: []u8, ctx: anytype, f: fn (FileData, @TypeOf(ctx)) Answer) !void {
+fn bench(Answer: type, answer: []u8, fba: *std.heap.FixedBufferAllocator, file_bytes: []const u8, f: fn (Context) Answer) !void {
     var timer = AvgTimer.init();
     defer timer.deinit();
+
+    const fba_end_index = fba.end_index;
+    const ctx = Context{
+        .file_data = .{ .file_data = file_bytes },
+        .arena = fba.allocator(),
+        .gpa = std.heap.smp_allocator,
+    };
 
     const benchmark_start = std.time.milliTimestamp();
 
     while (!timer.is_full() and (timer.next_time < 10 or (std.time.milliTimestamp() - benchmark_start < MAX_BENCHMARK_TIME_MS))) {
+        fba.end_index = fba_end_index;
         timer.start();
-        const calculated = f(fd, ctx);
+        const calculated = f(ctx);
         timer.stop();
-        var buf: [1024]u8 = undefined;
-        const printed = try std.fmt.bufPrint(&buf, "{any}", .{calculated});
+        fba.end_index = fba_end_index;
+        const printed = try std.fmt.allocPrint(fba.allocator(), "{any}", .{calculated});
+        defer fba.allocator().free(printed);
         if (!std.mem.eql(u8, printed, answer)) {
             std.debug.panic("incorrect result during benchmark, got {d}\n", .{calculated});
         }

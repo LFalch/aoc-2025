@@ -2,17 +2,15 @@ const std = @import("std");
 const aoc = @import("aoc");
 
 pub fn main() !void {
-    try aoc.main_with_bench(u32, {}, solve);
+    try aoc.run_solution(u32, solve);
 }
 
-var buf1: [32 * 1024]u8 = undefined;
-var buf2: [32 * 1024]u8 = undefined;
-
-fn solve(fd: aoc.FileData, _: void) u32 {
+fn solve(ctx: aoc.Context) u32 {
+    const fd = ctx.file_data;
     var sum: u32 = 0;
 
-    const board = buf1[0..fd.file_data.len];
-    const board2 = buf2[0..fd.file_data.len];
+    const board = ctx.arena.alloc(u8, fd.file_data.len) catch unreachable;
+    const board2 = ctx.arena.alloc(u8, fd.file_data.len) catch unreachable;
     @memcpy(board, fd.file_data);
     @memcpy(board2, fd.file_data);
 

@@ -2,26 +2,22 @@ const std = @import("std");
 const aoc = @import("aoc");
 
 pub fn main() !void {
-    try aoc.main_with_bench(u32, {}, solve);
+    try aoc.run_solution(u32, solve);
 }
 
-var buf: [8 * 512 + 8 * 1024]u8 = undefined;
+fn solve(ctx: aoc.Context) u32 {
+    var f = ctx.file_data;
 
-fn solve(fd: aoc.FileData, _: void) u32 {
-    var fba = std.heap.FixedBufferAllocator.init(&buf);
-    const alloc = fba.allocator();
-    var f = fd;
-
-    var froms = std.ArrayList(u64).initCapacity(alloc, 256) catch unreachable;
-    var tos = std.ArrayList(u64).initCapacity(alloc, 256) catch unreachable;
+    var froms = std.ArrayList(u64).initCapacity(ctx.arena, 256) catch unreachable;
+    var tos = std.ArrayList(u64).initCapacity(ctx.arena, 256) catch unreachable;
     while (true) {
         const from = f.read_number(u64);
         if (from == 0) break;
-        froms.append(alloc, from) catch unreachable;
+        froms.append(ctx.arena, from) catch unreachable;
 
         std.debug.assert(f.accept("-"));
         const to = f.read_number(u64);
-        tos.append(alloc, to) catch unreachable;
+        tos.append(ctx.arena, to) catch unreachable;
         _ = f.accept("\n");
     }
     _ = f.read_space();
@@ -29,12 +25,12 @@ fn solve(fd: aoc.FileData, _: void) u32 {
     std.mem.sort(u64, froms.items, {}, less_than);
     std.mem.sort(u64, tos.items, {}, less_than);
 
-    var ingredients = std.ArrayList(u64).initCapacity(alloc, 1024) catch unreachable;
+    var ingredients = std.ArrayList(u64).initCapacity(ctx.arena, 1024) catch unreachable;
     while (true) {
         const ingredient = f.read_number(u64);
         if (ingredient == 0) break;
         _ = f.read_space();
-        ingredients.append(alloc, ingredient) catch unreachable;
+        ingredients.append(ctx.arena, ingredient) catch unreachable;
     }
     std.mem.sort(u64, ingredients.items, {}, less_than);
 
