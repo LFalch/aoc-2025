@@ -2,19 +2,18 @@ const std = @import("std");
 const aoc = @import("aoc");
 
 pub fn main() !void {
-    var gpa = std.heap.DebugAllocator(.{}).init;
-    defer _ = gpa.deinit();
-    try aoc.main_with_bench(u64, .{gpa.allocator()}, solve);
+    try aoc.main_with_bench(u64, {}, solve);
 }
 
-fn solve(fd: aoc.FileData, ctx: struct { std.mem.Allocator }) u64 {
-    const alloc = ctx[0];
+var buf: [4096]u8 = undefined;
+
+fn solve(fd: aoc.FileData, _: void) u64 {
+    var fba = std.heap.FixedBufferAllocator.init(&buf);
+    const alloc = fba.allocator();
     var f = fd;
 
     var froms = std.ArrayList(u64).initCapacity(alloc, 256) catch unreachable;
-    defer froms.deinit(alloc);
     var tos = std.ArrayList(u64).initCapacity(alloc, 256) catch unreachable;
-    defer tos.deinit(alloc);
     while (true) {
         const from = f.read_number(u64);
         if (from == 0) break;

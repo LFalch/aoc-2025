@@ -2,19 +2,18 @@ const std = @import("std");
 const aoc = @import("aoc");
 
 pub fn main() !void {
-    var gpa = std.heap.DebugAllocator(.{}).init;
-    defer _ = gpa.deinit();
-    try aoc.main_with_bench(u32, .{gpa.allocator()}, solve);
+    try aoc.main_with_bench(u32, {}, solve);
 }
 
-fn solve(fd: aoc.FileData, ctx: struct { std.mem.Allocator }) u32 {
-    const alloc = ctx[0];
+var buf: [8 * 512 + 8 * 1024]u8 = undefined;
+
+fn solve(fd: aoc.FileData, _: void) u32 {
+    var fba = std.heap.FixedBufferAllocator.init(&buf);
+    const alloc = fba.allocator();
     var f = fd;
 
     var froms = std.ArrayList(u64).initCapacity(alloc, 256) catch unreachable;
-    defer froms.deinit(alloc);
     var tos = std.ArrayList(u64).initCapacity(alloc, 256) catch unreachable;
-    defer tos.deinit(alloc);
     while (true) {
         const from = f.read_number(u64);
         if (from == 0) break;
@@ -30,17 +29,24 @@ fn solve(fd: aoc.FileData, ctx: struct { std.mem.Allocator }) u32 {
     std.mem.sort(u64, froms.items, {}, less_than);
     std.mem.sort(u64, tos.items, {}, less_than);
 
-    var fresh_count: u32 = 0;
+    var ingredients = std.ArrayList(u64).initCapacity(alloc, 1024) catch unreachable;
     while (true) {
         const ingredient = f.read_number(u64);
         if (ingredient == 0) break;
         _ = f.read_space();
-        for (froms.items, tos.items) |from, to| {
-            if (ingredient >= from and ingredient <= to) {
-                fresh_count += 1;
-                break;
-            } else if (ingredient < from)
-                break;
+        ingredients.append(alloc, ingredient) catch unreachable;
+    }
+    std.mem.sort(u64, ingredients.items, {}, less_than);
+
+    var fresh_count: u32 = 0;
+    var i_int: usize = 0;
+    outer: for (ingredients.items) |ingredient| {
+        while (ingredient > tos.items[i_int]) {
+            i_int += 1;
+            if (i_int >= tos.items.len) break :outer;
+        }
+        if (ingredient >= froms.items[i_int]) {
+            fresh_count += 1;
         }
     }
 
