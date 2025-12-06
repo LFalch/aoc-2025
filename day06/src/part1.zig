@@ -8,36 +8,53 @@ pub fn main() !void {
 }
 
 fn solve(ctx: aoc.Context) AnswerType {
-    var f = ctx.file_data;
-    var list = std.ArrayList(AnswerType).empty;
-    var num_cols: usize = 0;
+    const fd = ctx.file_data;
+    const width = std.mem.indexOfScalar(u8, fd.file_data, '\n').? + 1;
 
-    while (true) {
-        _ = f.read_space();
-        const n = f.read_number(AnswerType);
-        if (n == 0) break;
-        list.append(ctx.arena, n) catch unreachable;
-        if (f.accept("\n") and num_cols == 0) {
-            num_cols = list.items.len;
-        }
-    }
-    _ = f.read_space();
     var sum: AnswerType = 0;
-    for (0..num_cols) |i| {
-        if (f.accept("+")) {
-            var j: usize = i;
-            while (j < list.items.len) : (j += num_cols) {
-                sum += list.items[j];
-            }
-        } else if (f.accept("*")) {
-            var product: AnswerType = 1;
-            var j: usize = i;
-            while (j < list.items.len) : (j += num_cols) {
-                product *= list.items[j];
-            }
-            sum += product;
-        } else unreachable;
-        _ = f.read_space();
+
+    var problem_i: usize = 0;
+    while (std.mem.indexOfAny(u8, fd.file_data[problem_i..], "+*")) |i| {
+        problem_i += i;
+        const num_width = std.mem.indexOfAny(u8, fd.file_data[problem_i + 1 ..], "+*") orelse fd.file_data.len - (problem_i + 1);
+
+        switch (fd.file_data[problem_i]) {
+            '+' => {
+                var index = problem_i - width;
+
+                while (true) {
+                    var num: AnswerType = 0;
+                    for (fd.file_data[index .. index + num_width]) |c| {
+                        if (c == ' ') continue;
+                        num = num * 10 + (c - '0');
+                    }
+                    sum += num;
+
+                    if (index < width) break else index -= width;
+                }
+            },
+            '*' => {
+                var product: AnswerType = 1;
+                var index = problem_i - width;
+
+                while (true) {
+                    var num: AnswerType = 0;
+                    for (fd.file_data[index .. index + num_width]) |c| {
+                        if (c == ' ') continue;
+                        num = num * 10 + (c - '0');
+                    }
+                    product *= num;
+
+                    if (index < width) break else index -= width;
+                }
+
+                sum += product;
+            },
+            else => unreachable,
+        }
+
+        problem_i += 1;
     }
+
     return sum;
 }
