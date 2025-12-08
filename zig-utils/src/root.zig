@@ -94,7 +94,7 @@ pub const Context = struct {
     gpa: std.mem.Allocator,
 };
 
-var mem_buf: [256 * 1024]u8 = undefined;
+var mem_buf: [4 * 1024 * 1024]u8 = undefined;
 
 /// Main function that does a benchmark if the answer is given in cmdargs
 pub fn run_solution(Answer: type, f: fn (Context) Answer) !void {
