@@ -207,7 +207,10 @@ pub const AvgTimer = struct {
         const us = @mod(avg, 1000);
         var decimals: [3]u8 = undefined;
         zeroFill(&decimals, us);
-        std.debug.print("Average time: {d}.{s}ms ± {d}µs\n", .{ ms, decimals, std_dev });
+        var buf: [256]u8 = undefined;
+        var stdout = std.fs.File.stdout().writer(&buf);
+        stdout.interface.print("{d}.{s}ms ± {d}µs (n={d})\n", .{ ms, decimals, std_dev, times.len }) catch @panic("print failed!?");
+        stdout.interface.flush() catch @panic("print failed!?");
     }
 
     pub fn is_full(self: *const AvgTimer) bool {
