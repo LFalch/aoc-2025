@@ -40,3 +40,8 @@ cd day08
 echo d8p1 in  $(zig build run1 --release=fast -- 62186)
 echo d8p2 in  $(zig build run2 --release=fast -- 8420405530)
 cd ..
+
+cd day09
+echo d9p1 in  $(zig build run1 --release=fast -- 4777816465)
+echo d9p2 in  $(zig build run2 --release=fast -- 1410501884)
+cd ..

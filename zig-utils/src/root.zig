@@ -1,5 +1,10 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const testing = std.testing;
+
+pub inline fn dbgPrint(comptime fmt: []const u8, args: anytype) void {
+    if (builtin.mode == .Debug) std.debug.print(fmt, args);
+}
 
 fn read(path: []const u8, alloc: std.mem.Allocator) ![]u8 {
     const f = try std.fs.cwd().openFile(path, .{ .mode = .read_only });
