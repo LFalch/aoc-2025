@@ -264,6 +264,6 @@ pub fn pow10(n: u8) u64 {
         10 => return 10000000000,
         11 => return 100000000000,
         12 => return 1000000000000,
-        else => return 10000000000000 * pow10(n - 12),
+        else => return 10000000000000 * pow10(n - 13),
     }
 }
