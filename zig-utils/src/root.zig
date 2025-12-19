@@ -144,10 +144,14 @@ fn bench(Answer: type, answer: []u8, fba: *std.heap.FixedBufferAllocator, file_b
     defer timer.deinit();
 
     const fba_end_index = fba.end_index;
+    var dbg_allocator = std.heap.DebugAllocator(.{}).init;
+    defer if (builtin.single_threaded or builtin.mode == .Debug) {
+        _ = dbg_allocator.deinit();
+    };
     const ctx = Context{
         .file_data = .{ .file_data = file_bytes },
         .arena = fba.allocator(),
-        .gpa = std.heap.smp_allocator,
+        .gpa = if (!builtin.single_threaded and builtin.mode != .Debug) std.heap.smp_allocator else dbg_allocator.allocator(),
     };
 
     const benchmark_start = std.time.milliTimestamp();

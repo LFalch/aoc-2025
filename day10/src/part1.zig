@@ -10,7 +10,7 @@ pub fn main() !void {
 const Button = std.bit_set.IntegerBitSet(16);
 const Path = struct {
     status: LightStatus,
-    buttons: std.bit_set.IntegerBitSet(16),
+    buttons_pressed: std.bit_set.IntegerBitSet(16),
 };
 const LightStatus = std.bit_set.IntegerBitSet(16);
 
@@ -60,13 +60,13 @@ fn bfs(target_status: LightStatus, buttons: []const Button, gpa: std.mem.Allocat
     defer queue2.deinit(gpa);
 
     var n: usize = 0;
-    queue2.append(gpa, .{ .status = target_status, .buttons = .initEmpty() }) catch unreachable;
+    queue2.append(gpa, .{ .status = target_status, .buttons_pressed = .initEmpty() }) catch unreachable;
 
     while (true) {
         n += 1;
         std.debug.assert(queue2.items.len > 0);
         for (queue2.items) |path| {
-            var unset = path.buttons.iterator(.{ .kind = .unset });
+            var unset = path.buttons_pressed.iterator(.{ .kind = .unset });
             while (unset.next()) |button_index_to_press| {
                 if (button_index_to_press >= buttons.len) break;
                 const button_to_press = buttons[button_index_to_press];
@@ -74,11 +74,11 @@ fn bfs(target_status: LightStatus, buttons: []const Button, gpa: std.mem.Allocat
                 const new_status = path.status.xorWith(button_to_press);
                 if (new_status == LightStatus.initEmpty()) return n;
 
-                var new_buttons = path.buttons;
-                new_buttons.set(button_index_to_press);
+                var buttons_pressed = path.buttons_pressed;
+                buttons_pressed.set(button_index_to_press);
                 queue1.append(gpa, .{
                     .status = new_status,
-                    .buttons = new_buttons,
+                    .buttons_pressed = buttons_pressed,
                 }) catch unreachable;
             }
         }

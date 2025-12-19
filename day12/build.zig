@@ -1,10 +1,9 @@
 const std = @import("std");
 
-pub fn build(b: *std.Build) !void {
+pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
 
     const optimize = b.standardOptimizeOption(.{});
-    const single_threaded = b.option(bool, "st", "single threaded");
 
     const aoc = b.addModule("aoc", .{
         .root_source_file = b.path("../zig-utils/src/root.zig"),
@@ -17,7 +16,6 @@ pub fn build(b: *std.Build) !void {
             .root_source_file = b.path("src/part1.zig"),
             .target = target,
             .optimize = optimize,
-            .single_threaded = single_threaded,
         }),
     });
     part1.root_module.addImport("aoc", aoc);
@@ -25,7 +23,6 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = b.path("src/part2.zig"),
         .target = target,
         .optimize = optimize,
-        .single_threaded = single_threaded,
     }) });
     part2.root_module.addImport("aoc", aoc);
 
