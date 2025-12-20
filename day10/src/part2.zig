@@ -3,7 +3,7 @@ const aoc = @import("aoc");
 
 const Allocator = std.mem.Allocator;
 
-const AnswerType: type = usize;
+const AnswerType: type = u32;
 
 pub fn main() !void {
     try aoc.run_solution(AnswerType, solve);
@@ -66,18 +66,21 @@ fn solve(ctx: aoc.Context) AnswerType {
 fn smallest_solution(target: Lights, num: u8, buttons: []Button, gpa: Allocator, sum: *AnswerType, sum_mutex: *std.Thread.Mutex) void {
     const combinations = button_combinations(gpa, buttons);
     defer gpa.free(combinations);
+    var cache = std.AutoHashMap(Lights, ?AnswerType).init(gpa);
+    defer cache.deinit();
 
     for (combinations) |c| {
         aoc.dbgPrint("  {d} {any}\n", .{ c.amnt_pressed, c.power_use.joltages[0..num] });
     }
-    const n = smallest_from_combo(target, combinations, num).?;
+    const n = smallest_from_combo(&cache, target, combinations, num).?;
     aoc.dbgPrint("{d}\n", .{n});
     sum_mutex.lock();
     sum.* += n;
     sum_mutex.unlock();
 }
 
-fn smallest_from_combo(target: Lights, combinations: []ButtonCombination, num: usize) ?AnswerType {
+fn smallest_from_combo(cache: *std.AutoHashMap(Lights, ?AnswerType), target: Lights, combinations: []ButtonCombination, num: usize) ?AnswerType {
+    if (cache.get(target)) |ret| return ret;
     if (target.zero()) {
         return 0;
     }
@@ -98,7 +101,7 @@ fn smallest_from_combo(target: Lights, combinations: []ButtonCombination, num: u
             const half_diff = (tj - cuj) / @as(@Vector(16, u16), @splat(2));
             break :b Lights{ .joltages = half_diff };
         };
-        const next_res = smallest_from_combo(next_target, combinations, num) orelse continue;
+        const next_res = smallest_from_combo(cache, next_target, combinations, num) orelse continue;
         const cand_res = 2 * next_res + comb.amnt_pressed;
 
         res = if (res) |r|
@@ -106,6 +109,7 @@ fn smallest_from_combo(target: Lights, combinations: []ButtonCombination, num: u
         else
             cand_res;
     }
+    cache.put(target, res) catch {};
     return res;
 }
 
