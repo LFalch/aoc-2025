@@ -45,3 +45,17 @@ cd day09
 echo d9p1 in  $(zig build run1 --release=fast -- 4777816465)
 echo d9p2 in  $(zig build run2 --release=fast -- 1410501884)
 cd ..
+
+cd day10
+echo d10p1 in  $(zig build run1 --release=fast -- 473)
+echo d10p2 in  $(zig build run2 --release=fast -- 18681)
+cd ..
+
+cd day11
+echo d11p1 in  $(zig build run1 --release=fast -- 613)
+echo d11p2 in  $(zig build run2 --release=fast -- 372918445876116)
+cd ..
+
+cd day12
+echo d12p1 in  $(zig build run1 --release=fast -- 591)
+cd ..
